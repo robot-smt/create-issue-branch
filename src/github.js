@@ -292,7 +292,6 @@ function getCommitText (ctx, config) {
 }
 
 function getPrBody (app, ctx, config) {
-  const issueNumber = context.getIssueNumber(ctx)
   let result = ''
   if (Config.copyIssueDescriptionToPR(config)) {
     app.log('Copying issue description to PR')
@@ -302,7 +301,6 @@ function getPrBody (app, ctx, config) {
       result += '\n'
     }
   }
-  result += `closes #${issueNumber}`
   return result
 }
 
