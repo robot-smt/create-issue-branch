@@ -14,7 +14,10 @@
   ],
   "watch": {
     "netlify-dev": {
-      "patterns": ["src", "test"],
+      "patterns": [
+        "src",
+        "test"
+      ],
       "extensions": "js,jsx"
     }
   },
