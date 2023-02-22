@@ -55,6 +55,13 @@
     "smee-client": "^1.2.3",
     "standard": "^16.0.4"
   },
+  "prettier": {
+    "trailingComma": "none",
+    "tabWidth": 4,
+    "semi": false,
+    "singleQuote": true,
+    "printWidth": 180
+  },
   "engines": {
     "node": "= 16.x"
   },
