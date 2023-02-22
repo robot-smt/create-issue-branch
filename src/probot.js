@@ -23,8 +23,9 @@ module.exports = (app, { getRouter }) => {
     await IssueAssigned.handle(app, ctx)
   })
   app.on('issue_comment.created', async ctx => {
-    const comment = ctx.payload.comment.body
-    await CommentCreated.handle(app, ctx, comment)
+    // const comment = ctx.payload.comment.body
+    // await CommentCreated.handle(app, ctx, comment)
+    await IssueAssigned.handle(app, ctx)
   })
   app.on('pull_request.closed', async ctx => {
     await PullRequestClosed.handle(app, ctx)
