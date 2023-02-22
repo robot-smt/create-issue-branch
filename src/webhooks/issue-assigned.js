@@ -26,14 +26,10 @@ async function handle(app, ctx) {
     const assignee = context.getAssignee(ctx);
     app.log(`Creating pull request for user ${assignee}`);
 
-    const promises = [github.createPr(app, ctx, config, assignee, branchName)];
+    await github.createPr(app, ctx, config, assignee, branchName);
     if (branchName.startsWith("hotfix/")) {
-      promises.push(
-        github.createPr(app, ctx, config, assignee, branchName, true)
-      );
+      await github.createPr(app, ctx, config, assignee, branchName, true);
     }
-
-    await Promise.all(promises);
   }
   utils.logMemoryUsage(app);
 }
