@@ -241,25 +241,10 @@ async function createCommit(ctx, commitSha, treeSha, username, message) {
     return res.data.sha
 }
 
-async function updateReference(ctx, branchName, sha, force) {
+async function updateReference(ctx, branchName, sha) {
     const owner = context.getRepoOwnerLogin(ctx)
     const repo = context.getRepoName(ctx)
-    if (force) {
-        await ctx.octokit.git.updateRef({
-            owner,
-            repo,
-            ref: `heads/${branchName}`,
-            sha,
-            force: true
-        })
-    } else {
-        await ctx.octokit.git.updateRef({
-            owner,
-            repo,
-            ref: `heads/${branchName}`,
-            sha
-        })
-    }
+    await ctx.octokit.git.updateRef({ owner, repo, ref: `heads/${branchName}`, sha })
 }
 
 async function createBranch(ctx, config, branchName, sha, log) {
@@ -298,13 +283,17 @@ async function createPr(app, ctx, config, username, branchName, useDefaultAsBase
     const owner = context.getRepoOwnerLogin(ctx)
     const repo = context.getRepoName(ctx)
     const base = useDefaultAsBase ? getDefaultBranch(ctx, config) : getPrTargetBranch(ctx, config, app.log)
-    const title = context.getIssueTitle(ctx)
+    let title = context.getIssueTitle(ctx)
     const draft = Config.shouldOpenDraftPR(config)
     try {
-        const commitSha = await getBranchHeadSha(ctx, branchName)
-        const treeSha = await getCommitTreeSha(ctx, commitSha)
-        const emptyCommitSha = await createCommit(ctx, commitSha, treeSha, username, getCommitText(ctx, config))
-        await updateReference(ctx, branchName, emptyCommitSha, useDefaultAsBase)
+        if (useDefaultAsBase) {
+            title += ` (${getDefaultBranch(ctx, config)})`
+        } else {
+            const commitSha = await getBranchHeadSha(ctx, branchName)
+            const treeSha = await getCommitTreeSha(ctx, commitSha)
+            const emptyCommitSha = await createCommit(ctx, commitSha, treeSha, username, getCommitText(ctx, config))
+            await updateReference(ctx, branchName, emptyCommitSha)
+        }
         const { data: pr } = await ctx.octokit.pulls.create({
             owner,
             repo,
