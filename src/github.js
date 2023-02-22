@@ -258,10 +258,10 @@ async function createBranch (ctx, config, branchName, sha, log) {
   }
 }
 
-async function createPr (app, ctx, config, username, branchName) {
+async function createPr (app, ctx, config, username, branchName, useDefaultAsBase) {
   const owner = context.getRepoOwnerLogin(ctx)
   const repo = context.getRepoName(ctx)
-  const base = getPrTargetBranch(ctx, config, app.log)
+  const base = useDefaultAsBase ? getDefaultBranch(ctx, config) : getPrTargetBranch(ctx, config, app.log)
   const title = context.getIssueTitle(ctx)
   const draft = Config.shouldOpenDraftPR(config)
   try {

@@ -1,33 +1,43 @@
-const Config = require('./../config')
-const context = require('./../context')
-const github = require('./../github')
-const utils = require('./../utils')
+const Config = require("./../config");
+const context = require("./../context");
+const github = require("./../github");
+const utils = require("./../utils");
 
-async function handle (app, ctx) {
-  app.log.debug('Issue was assigned')
-  const config = await Config.load(ctx)
+async function handle(app, ctx) {
+  app.log.debug("Issue was assigned");
+  const config = await Config.load(ctx);
   if (!Config.isModeAuto(config)) {
-    return
+    return;
   }
   if (github.skipBranchCreationForIssue(ctx, config)) {
-    app.log(`Skipping branch creation for issue: ${context.getIssueTitle(ctx)}`)
-    return
+    app.log(
+      `Skipping branch creation for issue: ${context.getIssueTitle(ctx)}`
+    );
+    return;
   }
-  const branchName = await github.getBranchNameFromIssue(ctx, config)
+  const branchName = await github.getBranchNameFromIssue(ctx, config);
   if (await github.branchExists(ctx, branchName)) {
-    app.log('Could not create branch as it already exists')
-    return
+    app.log("Could not create branch as it already exists");
+    return;
   }
-  await github.createIssueBranch(app, ctx, branchName, config)
-  const shouldCreatePR = Config.shouldOpenPR(config)
+  await github.createIssueBranch(app, ctx, branchName, config);
+  const shouldCreatePR = Config.shouldOpenPR(config);
   if (shouldCreatePR) {
-    const assignee = context.getAssignee(ctx)
-    app.log(`Creating pull request for user ${assignee}`)
-    await github.createPr(app, ctx, config, assignee, branchName)
+    const assignee = context.getAssignee(ctx);
+    app.log(`Creating pull request for user ${assignee}`);
+
+    const promises = [github.createPr(app, ctx, config, assignee, branchName)];
+    if (branchName.startsWith("hotfix/")) {
+      promises.push(
+        github.createPr(app, ctx, config, assignee, branchName, true)
+      );
+    }
+
+    await Promise.all(promises);
   }
-  utils.logMemoryUsage(app)
+  utils.logMemoryUsage(app);
 }
 
 module.exports = {
-  handle: handle
-}
+  handle: handle,
+};
