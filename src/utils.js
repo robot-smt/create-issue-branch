@@ -44,13 +44,6 @@ const analytics = Analytics({
   })]
 })
 
-function pushMetric (owner, log) {
-  analytics.identify(owner, () => {
-    analytics.track('branch_created', { category: 'Branches' }, () => log.info('Pushed metric to Google Analytics'))
-      .catch(err => log.error('Could not push metric to Google Analytics: ' + err))
-  }).catch(err => log.error('Could not identify user: ' + err))
-}
-
 function isRunningInGitHubActions () {
   return process.env.GITHUB_ACTIONS === 'true'
 }
@@ -100,7 +93,6 @@ module.exports = {
   makeGitSafe: makeGitSafe,
   wildcardMatch: wildcardMatch,
   isProduction: isProduction,
-  pushMetric: pushMetric,
   isRunningInGitHubActions: isRunningInGitHubActions,
   getStringLengthInBytes: getStringLengthInBytes,
   trimStringToByteLength: trimStringToByteLength,

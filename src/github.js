@@ -1,7 +1,6 @@
 const Config = require('./config')
 const utils = require('./utils')
 const context = require('./context')
-const plans = require('./plans')
 const { interpolate } = require('./interpolate')
 const { formatAsExpandingMarkdown, removeSemverPrefix } = require('./utils')
 
@@ -21,29 +20,12 @@ async function hasValidSubscriptionForRepo(app, ctx) {
         return true
     }
     if (context.isPrivateOrgRepo(ctx)) {
-        const isProPan = await plans.isProPlan(app, ctx)
-        if (!isProPan) {
-            await addBuyProComment(ctx)
-            app.log('Added comment to buy Pro 🙏 plan')
-            return false
-        } else {
-            return true
-        }
+        return true
     } else {
         const login = context.getRepoOwnerLogin(ctx)
         app.log(`Creating branch in public repository from user/org: https://github.com/${login} ...`)
         return true
     }
-}
-
-const buyComment =
-    'Hi there :wave:\n\nUsing this App for a private organization repository requires a paid ' +
-    'subscription that you can buy on the [GitHub Marketplace](https://github.com/marketplace/create-issue-branch)\n\n' +
-    'If you are a non-profit organization or otherwise can not pay for such a plan, contact me by ' +
-    '[creating an issue](https://github.com/robvanderleek/create-issue-branch/issues)'
-
-async function addBuyProComment(ctx) {
-    await addComment(ctx, { silent: false }, buyComment)
 }
 
 async function getBranchNameFromIssue(ctx, config) {
@@ -266,9 +248,6 @@ async function createBranch(ctx, config, branchName, sha, log) {
             branchName: branchName
         })
         await addComment(ctx, config, commentMessage)
-        if (utils.isProduction()) {
-            utils.pushMetric(owner, log)
-        }
         return res
     } catch (e) {
         if (e.message === 'Reference already exists') {
